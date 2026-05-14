@@ -1,0 +1,9 @@
+# Ignore references
+papers/
+
+# Ignore conda
+exit/
+
+# Ignore python files
+__pycache__/
+*.pyc

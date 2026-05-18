@@ -48,10 +48,31 @@ class BoardRenderer:
             self._pump_events()
             pygame.time.wait(30)
 
+    def wait_for_click(self):
+        """Block until the user left-clicks a cell; return its index (0-8)."""
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.close()
+                    raise SystemExit
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    cell = self._cell_at(event.pos)
+                    if cell is not None:
+                        return cell
+            pygame.time.wait(20)
+
     def close(self):
         pygame.quit()
 
     # --- internals ---------------------------------------------------------
+
+    def _cell_at(self, pos):
+        x, y = pos
+        if not (PAD <= x < PAD + 3 * CELL and PAD <= y < PAD + 3 * CELL):
+            return None
+        col = (x - PAD) // CELL
+        row = (y - PAD) // CELL
+        return int(row * 3 + col)
 
     def _draw_grid(self):
         for i in range(1, 3):

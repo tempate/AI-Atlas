@@ -11,9 +11,7 @@ import numpy as np
 
 N_TRAINING_GAMES = 100_000
 N_EVALUATION_GAMES = 2_000
-N_WATCH_GAMES = 4
 MOVE_DELAY_MS = 600
-GAME_PAUSE_MS = 1500
 
 
 def train(q_table):
@@ -112,47 +110,51 @@ def play_move(board, player, move):
     return next_board
 
 
-def watch(q_table, n_games=N_WATCH_GAMES,
-          move_delay=MOVE_DELAY_MS, game_pause=GAME_PAUSE_MS):
-    """Replay greedy-vs-random games in a window so you can watch the agent."""
+def play(q_table, move_delay=MOVE_DELAY_MS):
+    """Play interactively against the trained agent. Alternates sides each game."""
     renderer = BoardRenderer()
     try:
-        for game_idx in range(n_games):
-            greedy_role = "X" if game_idx % 2 == 0 else "O"
-            other_role = "O" if greedy_role == "X" else "X"
+        game_idx = 0
+        while True:
+            human_role = "X" if game_idx % 2 == 0 else "O"
+            agent_role = "O" if human_role == "X" else "X"
 
-            greedy = GreedyPlayer(greedy_role, q_table)
-            greedy.epsilon = 0.0
-            rand = MinMaxPlayer(other_role)
-            players = [greedy, rand] if greedy_role == "X" else [rand, greedy]
+            agent = GreedyPlayer(agent_role, q_table)
+            agent.epsilon = 0.0
 
             board = Board()
-            renderer.render(
-                board, f"Game {game_idx + 1}/{n_games} — greedy plays {greedy_role}"
-            )
-            renderer.pause(game_pause // 2)
+            renderer.render(board, f"Game {game_idx + 1} — you are {human_role}")
 
             winner = None
             for n_move in range(9):
-                player = players[n_move % 2]
-                move = player.choose_move(board)
-                board = play_move(board, player, move)
-                renderer.render(
-                    board, f"Game {game_idx + 1}: {player.player} plays cell {move}"
-                )
-                renderer.pause(move_delay)
+                turn = "X" if n_move % 2 == 0 else "O"
+                if turn == human_role:
+                    while True:
+                        cell = renderer.wait_for_click()
+                        if board.board[cell] == "":
+                            break
+                    board = board.copy()
+                    board.board[cell] = human_role
+                    renderer.render(board, f"Game {game_idx + 1}: you played cell {cell}")
+                else:
+                    move = agent.choose_move(board)
+                    board = play_move(board, agent, move)
+                    renderer.render(board, f"Game {game_idx + 1}: agent plays cell {move}")
+                    renderer.pause(move_delay)
+
                 winner = board.get_winner()
                 if winner:
                     break
 
-            if winner == greedy_role:
-                outcome = "greedy wins"
+            if winner == human_role:
+                outcome = "you win!"
             elif winner is None:
                 outcome = "draw"
             else:
-                outcome = "greedy loses"
-            renderer.render(board, f"Game {game_idx + 1}: {outcome}")
-            renderer.pause(game_pause)
+                outcome = "agent wins"
+            renderer.render(board, f"Game {game_idx + 1}: {outcome} — click to play again")
+            renderer.wait_for_click()
+            game_idx += 1
     finally:
         renderer.close()
 
@@ -166,7 +168,7 @@ def main():
     print("Score as X:", scoreX)
     print("Score as O:", scoreO)
 
-    watch(q_table)
+    play(q_table)
 
 
 if __name__ == "__main__":

@@ -16,8 +16,8 @@ import gymnasium as gym
 
 # --- Hyperparameters --------------------------------------------------------
 ENV_NAME = "FrozenLake-v1"
-IS_SLIPPERY = False         # deterministic variant
-MAP_NAME = "4x4"            # "4x4" or "8x8"
+IS_SLIPPERY = False          # deterministic variant
+MAP_NAME = "8x8"            # "4x4" or "8x8"
 
 N_EPISODES = 5_000          # training episodes
 MAX_STEPS = 100             # step cap per episode

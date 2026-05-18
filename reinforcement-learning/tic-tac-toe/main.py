@@ -1,6 +1,7 @@
 from Board import Board
-from players.RandomPlayer import RandomPlayer
 from players.GreedyPlayer import GreedyPlayer
+from players.MinMaxPlayer import MinMaxPlayer
+from players.RandomPlayer import RandomPlayer
 from renderer import BoardRenderer
 
 from collections import defaultdict
@@ -43,7 +44,7 @@ def train(q_table):
                 # Reward the player if his move wins
                 if winner == player.player:
                     reward = 1 - 0.05 * n_move
-                    
+
                 player.learn(trajectory, reward)
                 break
 
@@ -57,11 +58,11 @@ def evaluate(q_table, player):
     # Set up the players
     if player == "X":
         greedy = GreedyPlayer("X", q_table)
-        random = RandomPlayer("O")
+        random = MinMaxPlayer("O")
         players = [greedy, random]
     else:
         greedy = GreedyPlayer("O", q_table)
-        random = RandomPlayer("X")
+        random = MinMaxPlayer("X")
         players = [random, greedy]
 
     greedy.epsilon = 0.0
@@ -122,7 +123,7 @@ def watch(q_table, n_games=N_WATCH_GAMES,
 
             greedy = GreedyPlayer(greedy_role, q_table)
             greedy.epsilon = 0.0
-            rand = RandomPlayer(other_role)
+            rand = MinMaxPlayer(other_role)
             players = [greedy, rand] if greedy_role == "X" else [rand, greedy]
 
             board = Board()

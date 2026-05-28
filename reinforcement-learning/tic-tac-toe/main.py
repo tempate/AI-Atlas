@@ -29,21 +29,22 @@ def train(q_table):
             player = players[turn]
 
             # Let the player make a move
-            move = player.choose_move(board)
+            move = player.act(board)
             trajectory.append((board,move))
 
-            next_board = play_move(board, player, move)
-            winner = next_board.get_winner()
+            next_board = board.copy()
+            next_board.play(move, player.piece)
+            winner = next_board.winner
 
             if winner or n_move == 8:
                 # Give a small negative reward to draws
                 reward = -0.1
 
                 # Reward the player if his move wins
-                if winner == player.player:
+                if winner == player.piece:
                     reward = 1 - 0.05 * n_move
 
-                player.learn(trajectory, reward)
+                player.update(trajectory, reward)
                 break
 
             board = next_board
@@ -93,21 +94,15 @@ def play_game(players):
         player = players[turn]
 
         # Allow the player to make a move
-        move = player.choose_move(board)
-        board = play_move(board, player, move)
+        move = player.act(board)
+        board.play(move, player.piece)
 
         # Check if there is a winner
-        winner = board.get_winner()
+        winner = board.winner
         if winner:
             return winner
 
     return "DRAW"
-
-
-def play_move(board, player, move):
-    next_board = board.copy()
-    next_board.board[move] = player.player
-    return next_board
 
 
 def play(q_table, move_delay=MOVE_DELAY_MS):
@@ -131,18 +126,18 @@ def play(q_table, move_delay=MOVE_DELAY_MS):
                 if turn == human_role:
                     while True:
                         cell = renderer.wait_for_click()
-                        if board.board[cell] == "":
+                        if board._cells[cell] == "":
                             break
                     board = board.copy()
-                    board.board[cell] = human_role
+                    board._cells[cell] = human_role
                     renderer.render(board, f"Game {game_idx + 1}: you played cell {cell}")
                 else:
-                    move = agent.choose_move(board)
-                    board = play_move(board, agent, move)
+                    move = agent.act(board)
+                    board.play(move, agent.piece)
                     renderer.render(board, f"Game {game_idx + 1}: agent plays cell {move}")
                     renderer.pause(move_delay)
 
-                winner = board.get_winner()
+                winner = board.winner
                 if winner:
                     break
 

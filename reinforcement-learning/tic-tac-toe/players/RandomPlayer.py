@@ -2,10 +2,8 @@ import numpy as np
 
 
 class RandomPlayer:
-    def __init__(self, player):
-        self.player = player
+    def __init__(self, piece):
+        self.piece = piece
 
-    def choose_move(self, board):
-        possible_moves = board.get_possible_moves()
-        move = np.random.choice(possible_moves)
-        return move
+    def act(self, board):
+        return np.random.choice(board.legal_moves)

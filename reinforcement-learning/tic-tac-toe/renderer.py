@@ -30,7 +30,7 @@ class BoardRenderer:
         self._pump_events()
         self.screen.fill(BG)
         self._draw_grid()
-        for i, mark in enumerate(board.board):
+        for i, mark in enumerate(board._cells):
             cx = PAD + (i % 3) * CELL + CELL // 2
             cy = PAD + (i // 3) * CELL + CELL // 2
             if mark == "X":

@@ -2,53 +2,66 @@
 
 class Board():
     def __init__(self):
-        self.board = [""] * 9
+        self._cells = [""] * 9
+
+    def __getitem__(self, pos):
+        row, col = pos
+        return self._cells[row * 3 + col]
+
+    def __setitem__(self, pos, piece):
+        row, col = pos
+        self._cells[row * 3 + col] = piece
 
     def copy(self):
-        new_board = Board()
-        new_board.board = self.board.copy()
-        return new_board
+        clone = Board()
+        clone._cells = self._cells.copy()
+        return clone
 
-    def get_possible_moves(self):
+    @property
+    def legal_moves(self):
         possible_moves = []
 
         for i in range(9):
-            if self.board[i] == "":
+            if self._cells[i] == "":
                 possible_moves.append(i)
 
         return possible_moves
 
-    def get_winner(self):
+    @property
+    def winner(self):
         """Return the winner if the game is over and none otherwise."""
         # Check rows
         for row in range(3):
-            if self.board[3*row] == self.board[3*row+1] == self.board[3*row+2] != "":
-                return self.board[3*row]
+            if self[row,0] == self[row,1] == self[row,2] != "":
+                return self[row,0]
 
         # Check columns
         for col in range(3):
-            if self.board[col] == self.board[col+3] == self.board[col+6] != "":
-                return self.board[col]
+            if self[0,col] == self[1,col] == self[2,col] != "":
+                return self[0,col]
 
         # Check diagonal
-        if self.board[2] == self.board[4] == self.board[6] != "":
-            return self.board[2]
+        if self[0,2] == self[1,1] == self[2,0] != "":
+            return self[0,2]
 
         # Check anti-diagonal
-        if self.board[0] == self.board[4] == self.board[8] != "":
-            return self.board[0]
+        if self[0,0] == self[1,1] == self[2,2] != "":
+            return self[0,0]
 
         return None
 
-    def encode_board(self):
+    def play(self, pos, piece):
+        self._cells[pos] = piece
+
+    def to_tensor(self):
         encoding = 1
 
         for i in range(9):
             encoding <<= 2
 
-            if self.board[i] == "X":
+            if self._cells[i] == "X":
                 encoding += 1
-            elif self.board[i] == "O":
+            elif self._cells[i] == "O":
                 encoding += 2
 
         return encoding

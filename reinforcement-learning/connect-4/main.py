@@ -3,6 +3,8 @@ import random
 
 from Board import Board, N_ROWS, N_COLS
 from players.AlphaZero import AlphaZero
+from players.HumanPlayer import HumanPlayer
+from players.MinMaxPlayer import MinMaxPlayer
 from players.RandomPlayer import RandomPlayer
 from renderer import BoardRenderer
 
@@ -18,9 +20,11 @@ N_GAMES_PER_IT = 64
 N_TRAIN_STEPS_PER_IT = 400
 N_EVAL_GAMES_PER_IT = 20
 
+N_TEST_GAMES = 50
+
 
 def train(alpha_zero):
-    replay_buffer = deque(maxlen=10_000)
+    replay_buffer = deque(maxlen=BUFFER_SIZE)
 
     for it in range(N_ITS):
         alpha_zero_old = alpha_zero.copy()
@@ -75,14 +79,24 @@ def evaluate(alpha_zero, alpha_zero_old):
     return score
 
 
+def get_move(player, board, renderer=None):
+    """Get a move from any player, normalizing the differing act() signatures."""
+    if isinstance(player, AlphaZero):
+        return player.act(board, greedy=True)[0]
+
+    if isinstance(player, HumanPlayer):
+        return player.act(board, renderer)
+
+    return player.act(board)
+
+
 def play_game(players):
     board = Board()
 
     for n_move in range(N_ROWS * N_COLS):
-        turn = n_move % 2
-        player = players[turn]
+        player = players[n_move % 2]
 
-        move, _ = player.act(board, greedy=True)
+        move = get_move(player, board)
         board.play(move)
 
         winner = board.winner
@@ -92,47 +106,69 @@ def play_game(players):
     return "DRAW"
 
 
-def play(alpha_zero, move_delay=MOVE_DELAY_MS):
-    """Play interactively against the trained AlphaZero agent. Alternates sides each game."""
-    alpha_zero.network.eval()
+def play_match(alpha_zero, opponent, n_games):
+    """Play n_games between AlphaZero and opponent, alternating who starts."""
 
+    alpha_zero.network.eval()
+    wins = draws = losses = 0
+
+    for game in range(n_games):
+        # Alternate sides so the first-move advantage is shared evenly.
+        if game % 2 == 0:
+            players = [alpha_zero, opponent]
+            alpha_zeros_piece = "X"
+        else:
+            players = [opponent, alpha_zero]
+            alpha_zeros_piece = "O"
+
+        winner = play_game(players)
+        if winner == "DRAW":
+            draws += 1
+        elif winner == alpha_zeros_piece:
+            wins += 1
+        else:
+            losses += 1
+
+    return wins, draws, losses
+
+
+def play_human(alpha_zero):
+    """Play interactively against the trained AlphaZero agent, alternating sides."""
+
+    alpha_zero.network.eval()
+    human = HumanPlayer()
     renderer = BoardRenderer()
+
     try:
-        game_idx = 0
+        game = 0
         while True:
-            human_role = "X" if game_idx % 2 == 0 else "O"
+            # Alternate who moves first each game.
+            if game % 2 == 0:
+                players = [human, alpha_zero]
+            else:
+                players = [alpha_zero, human]
 
             board = Board()
-            renderer.render(board, f"Game {game_idx + 1} — you are {human_role}")
+            renderer.render(board)
 
             winner = None
-            while True:
-                if board.side_to_move == human_role:
-                    while True:
-                        col = renderer.wait_for_click()
-                        if board[0, col] == "":
-                            break
-                    board.play(col)
-                    renderer.render(board, f"Game {game_idx + 1}: you played column {col}")
-                else:
-                    move, _ = alpha_zero.act(board, greedy=True)
-                    board.play(move)
-                    renderer.render(board, f"Game {game_idx + 1}: agent plays column {move}")
-                    renderer.pause(move_delay)
+            for n_move in range(N_ROWS * N_COLS):
+                player = players[n_move % 2]
+
+                move = get_move(player, board, renderer)
+                board.play(move)
+                renderer.render(board)
+                if not isinstance(player, HumanPlayer):
+                    renderer.pause(MOVE_DELAY_MS)
 
                 winner = board.winner
-                if winner or board.is_full:
+                if winner:
                     break
 
-            if winner == human_role:
-                outcome = "you win!"
-            elif winner is None:
-                outcome = "draw"
-            else:
-                outcome = "agent wins"
-            renderer.render(board, f"Game {game_idx + 1}: {outcome} — click to play again")
+            outcome = "Draw" if winner is None else f"{winner} wins"
+            renderer.render(board, f"{outcome} — click to play again")
             renderer.wait_for_click()
-            game_idx += 1
+            game += 1
     finally:
         renderer.close()
 
@@ -140,8 +176,17 @@ def play(alpha_zero, move_delay=MOVE_DELAY_MS):
 def main():
     alpha_zero = AlphaZero()
     train(alpha_zero)
-    play(alpha_zero)
 
+    rivals = [
+        ("Random", RandomPlayer()),
+        ("MinMax", MinMaxPlayer())
+    ]
+
+    for name, opponent in rivals:
+        wins, draws, losses = play_match(alpha_zero, opponent, N_TEST_GAMES)
+        print(f"AlphaZero vs {name}: {wins} wins, {draws} draws, {losses} losses")
+
+    play_human(alpha_zero)
 
 if __name__ == "__main__":
     main()

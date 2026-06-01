@@ -1,4 +1,4 @@
-from library.Neuron import Neuron
+from library.scalar.Neuron import Neuron
 
 
 class Layer:

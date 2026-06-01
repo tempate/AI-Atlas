@@ -1,4 +1,4 @@
-from library.Value import Value
+from library.scalar.Value import Value
 
 import random
 

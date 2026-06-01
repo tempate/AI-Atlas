@@ -1,5 +1,5 @@
-from library.Layer import Layer
-from library.Value import Value
+from library.scalar.Layer import Layer
+from library.scalar.Value import Value
 
 
 class MLP:

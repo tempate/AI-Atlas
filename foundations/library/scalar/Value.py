@@ -11,9 +11,6 @@ class Value:
     def __repr__(self):
         return f"Value={self.data:.3f}"
 
-    def __neg__(self):
-        return self * Value(-1)
-
     def __add__(self, other):
         value = Value(self.data + other.data, [self, other])
 
@@ -24,8 +21,17 @@ class Value:
 
         return value
 
+    def __radd__(self, scalar):
+        return Value(scalar) + self
+
+    def __neg__(self):
+        return self * Value(-1)
+
     def __sub__(self, other):
         return self + (-other)
+
+    def __rsub__(self, other):
+        return Value(other) - self
 
     def __mul__(self, other):
         value = Value(self.data * other.data, [self, other])
@@ -63,7 +69,7 @@ class Value:
         value = Value(0 if self.data < 0 else self.data, [self])
 
         def _backward():
-            self.grad += (self.data < 0) * value.grad
+            self.grad += (self.data > 0) * value.grad
         value._backward = _backward
 
         return value

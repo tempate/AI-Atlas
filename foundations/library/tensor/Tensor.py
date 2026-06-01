@@ -73,6 +73,15 @@ class Tensor:
 
         return tensor
 
+    def mean(self):
+        tensor = Tensor(self.data.mean(), [self])
+
+        def _backward():
+            self.grad += tensor.grad / self.data.size
+        tensor._backward = _backward
+
+        return tensor
+
     def tanh(self):
         t = np.tanh(self.data)
         tensor = Tensor(t, [self])

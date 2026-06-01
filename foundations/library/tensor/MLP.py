@@ -6,10 +6,16 @@ import numpy as np
 class MLP:
     def __init__(self, nin, layers):
         self.sizes = [nin] + layers
+
+        # Create the hidden layers
         self.layers = [
             Layer(self.sizes[i], self.sizes[i+1])
-            for i in range(len(layers))
+            for i in range(len(layers)-1)
         ]
+
+        # Create the output layer
+        self.layers.append(Layer(
+            self.sizes[-2], self.sizes[-1], activation=False))
 
     def __call__(self, xs):
         out = Tensor(xs)

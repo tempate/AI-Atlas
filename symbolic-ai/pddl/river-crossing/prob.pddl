@@ -1,0 +1,13 @@
+(define (problem rc-3)
+  (:domain river-crossing)
+  (:objects wolf sheep carrot - item
+            s1 s2 - side)
+  (:init (at wolf s1)
+         (at sheep s1)
+         (at carrot s1)
+         (boatat s1)
+         (eats wolf sheep)
+         (eats sheep carrot))
+  (:goal (and (at wolf s2)
+              (at sheep s2)
+              (at carrot s2))))

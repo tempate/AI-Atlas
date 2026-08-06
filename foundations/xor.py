@@ -44,5 +44,5 @@ def tensor():
         # print(f"{it+1}. Loss: {sum(loss.data)}")
     # print(preds)
 
-print("scalar:", timeit.timeit(scalar, number=1))
-print("tensor:", timeit.timeit(tensor, number=1))
+print("Time (s) to train on 10k epochs using scalar:", timeit.timeit(scalar, number=1))
+print("Time (s) to train on 10k epochs using tensor:", timeit.timeit(tensor, number=1))

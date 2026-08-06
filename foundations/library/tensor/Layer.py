@@ -11,8 +11,8 @@ class Layer:
         self.weights = Tensor(np.random.randn(*self.shape) * np.sqrt(2 / nin))
         self.bias = Tensor(np.zeros(nout))
 
-    def __call__(self, xs):
-        out = xs @ self.weights + self.bias
+    def __call__(self, x):
+        out = x @ self.weights + self.bias
         return out.tanh() if self.activation else out
 
     def parameters(self):

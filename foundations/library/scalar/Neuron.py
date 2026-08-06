@@ -9,11 +9,7 @@ class Neuron:
         self.bias = Value(random.uniform(-1,1))
 
     def __call__(self, xs):
-        output = self.bias
-
-        for x, weight in zip(xs, self.weights):
-            output += x * weight
-
+        output = self.bias + sum(x * w for x, w in zip(xs, self.weights))
         return output.tanh()
 
     def parameters(self):

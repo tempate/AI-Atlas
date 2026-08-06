@@ -8,7 +8,6 @@ import numpy as np
 LEARNING_RATE = 0.05
 BATCH_SIZE = 64
 N_EPOCHS = 50
-VAL_SIZE = 0.1
 
 
 def load_data():

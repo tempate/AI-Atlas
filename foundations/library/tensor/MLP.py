@@ -1,34 +1,20 @@
 from library.tensor.Layer import Layer
-from library.tensor.Tensor import Tensor
-import numpy as np
+from library.tensor.Sequential import Sequential
 
 
-class MLP:
-    def __init__(self, nin, layers):
-        self.sizes = [nin] + layers
+class MLP(Sequential):
+    def __init__(self, nin, nout):
+        sizes = [nin] + nout
 
         # Create the hidden layers
-        self.layers = [
-            Layer(self.sizes[i], self.sizes[i+1])
-            for i in range(len(layers)-1)
+        hidden_layers = [
+            Layer(sizes[i], sizes[i+1])
+            for i in range(len(nout)-1)
         ]
 
         # Create the output layer
-        self.layers.append(Layer(
-            self.sizes[-2], self.sizes[-1], activation=False))
+        output_layer = Layer(sizes[-2], sizes[-1],
+                             activation=False)
 
-    def __call__(self, xs):
-        out = Tensor(xs)
-        for layer in self.layers:
-            out = layer(out)
-        return out
-
-    def parameters(self):
-        params = []
-        for layer in self.layers:
-            params.extend(layer.parameters())
-        return params
-
-    def zero_grad(self):
-        for param in self.parameters():
-            param.grad = np.zeros_like(param.data)
+        layers = hidden_layers + [output_layer]
+        super().__init__(layers)

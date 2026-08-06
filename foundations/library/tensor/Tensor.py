@@ -117,6 +117,18 @@ class Tensor:
         for node in reversed(nodes):
             node._backward()
 
+    def reshape(self, *shape):
+        tensor = Tensor(self.data.reshape(shape), [self])
+
+        def _backward():
+            self.grad += tensor.grad.reshape(self.data.shape)
+        tensor._backward = _backward
+
+        return tensor
+
+    def flatten(self):
+        return self.reshape(-1)
+
     @staticmethod
     def _reduce_to(grad, target_shape):
         extra = grad.ndim - len(target_shape)

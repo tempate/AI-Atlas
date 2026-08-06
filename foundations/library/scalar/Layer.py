@@ -6,12 +6,7 @@ class Layer:
         self.neurons = [Neuron(nin) for _ in range(size)]
 
     def __call__(self, xs):
-        output = []
-
-        for neuron in self.neurons:
-            output.append(neuron(xs))
-
-        return output
+        return [neuron(xs) for neuron in self.neurons]
 
     def parameters(self):
         params = []
